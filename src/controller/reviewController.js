@@ -17,6 +17,11 @@ const createReview = async function(req,res){
     if(bookId != reviewData.bookId) return res.status(400).send({status:false,msg:'bookId in params and body do not match'})
 
     if(!reviewData.reviewedBy) return res.status(400).send({status:false,msg:'reviewedBy is not present'})
+    if(Object.keys(reviewData).includes('reviewedAt')){
+        if(!(/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/.test(reviewData.reviewedAt))){
+            return res.status(400).send({status:false,msg:"reviewed Date is not valid"})
+        }
+    }
     if(!reviewData.rating) return res.status(400).send({status:false,msg:'rating is not present'})
     let data = await reviewModel.create(reviewData)
     let bookUpdate = await bookModel.findOneAndUpdate({_id:bookId, isDeleted:false}, {$inc: {review : 1}})    
@@ -38,8 +43,11 @@ const updateReview = async function(req,res){
     if(!review) return res.status(400).send({status:false,msg:"review with specific reviewId is not present"})
     // Get review details like review, rating, reviewer's name in request body.
     let reviewData = req.body
+    book = book.toObject()
     let updated = await reviewModel.findByIdAndUpdate({_id:reviewId,status:false}, {$set:{review:reviewData.review, rating:reviewData.rating,reviewedBy:reviewData.reviewedBy}})
-    return res.status(200).send({status:true,msg:"success",data:updated})
+    let allReviews = await reviewModel.find({bookId:bookId,isDeleted:false})
+    book.reviewsData = allReviews
+    return res.status(200).send({status:true,msg:"success",data:book})
 }
 
 const deleteReview = async function(req,res){

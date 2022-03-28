@@ -12,7 +12,7 @@ const createUser = async function(req,res){
     if(!userData.title) return res.status(400).send({status:false,msg:`title of the user is not present`})
     if(userData.title.trim().length == 0) return res.status(400).send({status:false,msg:"enter the title in proper format"})
     // if title is present should be from ["Mr", "Mrs", "Miss"]
-    let title = ["Mr", "Mrs", "Miss"]
+    let title = ["Mr", "Mrs", "Miss"] 
     if(!title.includes(userData.title.trim())) return res.status(400).send({status: false, msg : "title should be from [Mr, Mrs, Miss]"})
     //check name
     if(!userData.name) return res.status(400).send({status:false,msg:"name of the user is not present"})
@@ -36,8 +36,15 @@ const createUser = async function(req,res){
     // check password
     if(!userData.password) return res.status(400).send({status:false,msg:"password of the user is not present"})
     // validation of password
-    validPass = userData.password.trim().length >=8 && userData.password.trim().length <=15
+    let validPass = userData.password.trim().length >=8 && userData.password.trim().length <=15
     if(!validPass) return res.status(400).send({status:false, msg:"Password length should be between 8 to 15"})
+
+    if(Object.keys(userData).includes('releasedAt')){
+        if(!(/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/.test(userData.releasedAt))){
+            return res.status(400).send({status:false,msg:"released Date is not valid"})
+        }
+    }
+    
     let data = await userModel.create(userData);
     return res.status(201).send({status : true, msg: "success",  data : data})
 }catch(error) {
