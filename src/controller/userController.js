@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken')
 const createUser = async function(req,res){
     // Check req.body is empty or not
     try{if(Object.keys(req.body).length == 0) return res.status(400).send({status : false, msg : "please enter the details of the user"})
-    let userData = req.body
+    const userData = req.body
     //check title
     if(!userData.title) return res.status(400).send({status:false,msg:`title of the user is not present`})
     if(userData.title.trim().length == 0) return res.status(400).send({status:false,msg:"enter the title in proper format"})
@@ -39,11 +39,11 @@ const createUser = async function(req,res){
     let validPass = userData.password.trim().length >=8 && userData.password.trim().length <=15
     if(!validPass) return res.status(400).send({status:false, msg:"Password length should be between 8 to 15"})
 
-    if(Object.keys(userData).includes('releasedAt')){
-        if(!(/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/.test(userData.releasedAt))){
-            return res.status(400).send({status:false,msg:"released Date is not valid"})
-        }
-    }
+    // if(Object.keys(userData).includes('releasedAt')){
+    //     if(!(/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/.test(userData.releasedAt))){
+    //         return res.status(400).send({status:false,msg:"released Date is not valid"})
+    //     }
+    // }
     
     let data = await userModel.create(userData);
     return res.status(201).send({status : true, msg: "success",  data : data})
@@ -61,7 +61,7 @@ const loginUser = async function(req,res){
         if (!user)
           return res.status(400).send({status: false,msg: " EmailId or the password is not correct"});
         let token = jwt.sign(
-          { exp: Math.floor(Date.now() / 1000) + (30*60 ),
+          { exp: Math.floor(Date.now() / 1000) + (60*30),
           userId: user._id.toString()
           },
           "secret-key"
@@ -72,7 +72,22 @@ const loginUser = async function(req,res){
         res.status(500).send({status:false ,Error:err.message});
       }
 }
+// /(\w)*\\(?!\\)(\w)*\\(?!\\)(\w)*(?!\\)/g
+const error = async function(req,res){
+    try{
+        let token = req.headers["x-api-key"]
+        let decodedToken = jwt.verify(token, "secret-key", {ignoreExpiration: true})
+        let exp = decodedToken.exp
+        let iatNow = Math.floor(Date.now() / 1000)
+        if(exp<iatNow) return res.status(401).send({status:false,msg:'Token is expired now'})
+        return res.status(200).send({msg:'change the code'})
+        next()
+    }catch(error){
+        return res.status(500).send({status:false, msg:error.message})
+    }
+}
 
 
 module.exports.createUser = createUser
 module.exports.loginUser = loginUser
+module.exports.error = error

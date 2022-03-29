@@ -72,7 +72,7 @@ const getBooks = async function(req,res){
     if(data.length == 0) return res.status(404).send({status:false,msg:"no book found"})
     return res.status(200).send({status:true,msg:"success",data:data})
 }
-// mongoDB gave us a bison type of Object
+
 const getBooksWithId = async function(req,res){
     let bookId = req.params.bookId;
     if(!bookId) return res.status(400).send({status:false,msg:'enter the book id to find'})
@@ -80,7 +80,7 @@ const getBooksWithId = async function(req,res){
     let data = await bookModel.findOne({_id:bookId,isDeleted:false})
     if(!data) return res.status(400).send({status:false,msg:'book with bookId was not found'})
     let review = await reviewModel.find({bookId:bookId,isDeleted:false})
-    data = data.toObject()
+    data = data.toObject() // mongoDB gave us a bison type of Object
     data.reviewsData = review
     //let book = {...data,reviesData:review}
     return res.status(200).send({status:true,msg:"success",data:data})
@@ -91,7 +91,7 @@ const getBooksWithId = async function(req,res){
 //   - release date
 //   - ISBN
 const updateBook = async function(req,res){
-    let bookId = req.params.bookId;
+    try{let bookId = req.params.bookId;
     if(!bookId) return res.status(400).send({status:false,msg:'enter the book id to find'})
     if(!ObjectId.isValid(bookId)) return res.status(400).send({status:false,msg:'bookId is not valid'})
     let data = await bookModel.findOne({_id:bookId,isDeleted:false})
@@ -99,11 +99,13 @@ const updateBook = async function(req,res){
     
     let updateDetails = req.body;
     if(Object.keys(updateDetails).includes('title')){
+        if(updateDetails.title.trim().length == 0) return res.status(400).send({status:false,msg:"unable to assign blank value to title"})
         let dupTitle = await bookModel.findOne({title:updateDetails.title,isDeleted:false})
         if(dupTitle) return res.status(400).send({status:false,msg:`book with ${updateDetails.title} is already present.`})
     }
 
     if(Object.keys(updateDetails).includes('ISBN')){
+        if(updateDetails.ISBN.trim().length == 0) return res.status(400).send({status:false,msg:"unable to assign blank value to ISBN"})
         let dupISBN = await bookModel.findOne({ISBN:updateDetails.ISBN,isDeleted:false})
         if(dupISBN) return res.status(400).send({status:false,msg:`book with ${updateDetails.ISBN} is already present.`})
     }
@@ -112,17 +114,21 @@ const updateBook = async function(req,res){
             return res.status(400).send({status:false,msg:"released Date is not valid"})
         }
     }
-    
     let updatedBook = await bookModel.findOneAndUpdate({_id:bookId,isDeleted:false}, {$set:{title:updateDetails.title, excerpt:updateDetails.excerpt,releasedAt:updateDetails.releasedAt,ISBN:updateDetails.ISBN}},{new:true})
     let review = await reviewModel.find({bookId:bookId,isDeleted:false})
     updatedBook = updatedBook.toObject()
     updatedBook.reviesData = review
     //let book = {...data,reviesData:review}
     return res.status(201).send({status:true,msg:"success",data:updatedBook})
+}catch(error) {
+    return res.status(500).send({status:false,msg:error.message})
+}
 }
 
 const deleteBook = async function(req,res){
     let bookId = req.params.bookId;
+    if(!bookId) return res.status(400).send({status:false,msg:'enter the book id to find'})
+    if(!ObjectId.isValid(bookId)) return res.status(400).send({status:false,msg:'bookId is not valid'})
     let book = await bookModel.findOne({_id:bookId, isDeleted:false})
     if(!book) return res.status(400).send({status:false,msg:'unable to find book with given bookId'})
     let bookDel = await bookModel.findOneAndUpdate({_id:bookId, isDeleted:false},{isDeleted:true,deletedAt:new Date})
