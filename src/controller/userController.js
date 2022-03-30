@@ -1,5 +1,3 @@
-const { type, json } = require('express/lib/response')
-const res = require('express/lib/response')
 const userModel = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 
@@ -7,6 +5,7 @@ const jwt = require('jsonwebtoken')
 const createUser = async function(req,res){
     // Check req.body is empty or not
     try{if(Object.keys(req.body).length == 0) return res.status(400).send({status : false, msg : "please enter the details of the user"})
+    
     const userData = req.body
     //check title
     if(!userData.title) return res.status(400).send({status:false,msg:`title of the user is not present`})
@@ -20,31 +19,36 @@ const createUser = async function(req,res){
     //check phone number
     if(!userData.phone) return res.status(400).send({status:false,msg:"phone no. of the user is not present"})
     // validation of phone number
-    if(!(/^([+]\d{2})?\d{10}$/.test(userData.phone))){
+    if(!(/^([+]\d{2})?\d{10}$/.test(userData.phone.trim()))){
         return res.status(400).send({status:false,msg:"phone no. is not valid"})
     }
     //check phone no. is already registered or not 
-    let dupPhone = await userModel.findOne({phone : userData.phone})
+    let dupPhone = await userModel.findOne({phone : userData.phone.trim()})
     if(dupPhone) return res.status(400).send({status: false, msg: `${userData.phone} is already registered`})
     //check email
     if(!userData.email) return res.status(400).send({status:false,msg:"email of the user is not present"})
     // validation of email
-    if(!(/^\w+([\.-]?\w+)@\w+([\. -]?\w+)(\.\w{2,3})+$/.test(userData.email))) return res.status(400).send({status:false,msg:"email ID is not valid"})
+    if(!(/^\w+([\.-]?\w+)@\w+([\. -]?\w+)(\.\w{2,3})+$/.test(userData.email.trim()))) return res.status(400).send({status:false,msg:"email ID is not valid"})
     //check email is already registered or not
-    let dupEmail = await userModel.findOne({email : userData.email})
+    let dupEmail = await userModel.findOne({email : userData.email.trim()})
     if(dupEmail) return res.status(400).send({status: false, msg: `${userData.email} is already registered`})
     // check password
     if(!userData.password) return res.status(400).send({status:false,msg:"password of the user is not present"})
     // validation of password
     let validPass = userData.password.trim().length >=8 && userData.password.trim().length <=15
     if(!validPass) return res.status(400).send({status:false, msg:"Password length should be between 8 to 15"})
-
-    // if(Object.keys(userData).includes('releasedAt')){
-    //     if(!(/^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$/.test(userData.releasedAt))){
-    //         return res.status(400).send({status:false,msg:"released Date is not valid"})
+    
+    // if(Object.keys(userData).includes('address')){
+    //     let add = userData.address;
+    //     for(let i=0;i<Object.values(add).length;i++){
+    //         if(typeof(Object.values(add)[i])!=typeof(' ')) 
+    //             return res.status(400).send({status:false,msg:'enter the address in proper format'})
     //     }
     // }
-    
+    // if(userData.hasOwnProperty(address)){
+    //     if(Object.keys(userData.address).length == 0) return res.status(400).send({status:false,msg:'address should be in valid format'}) 
+    // }
+
     let data = await userModel.create(userData);
     return res.status(201).send({status : true, msg: "success",  data : data})
 }catch(error) {
@@ -57,7 +61,7 @@ const loginUser = async function(req,res){
         let userName = req.body.email;
         let password = req.body.password;
         if(!userName || !password) return res.status(400).send({status:false, msg: "username or password is not present"})
-        let user = await userModel.findOne({ email:userName, password: password });
+        let user = await userModel.findOne({ email:userName.trim(), password: password.trim() });
         if (!user)
           return res.status(400).send({status: false,msg: " EmailId or the password is not correct"});
         let token = jwt.sign(
@@ -72,22 +76,8 @@ const loginUser = async function(req,res){
         res.status(500).send({status:false ,Error:err.message});
       }
 }
-// /(\w)*\\(?!\\)(\w)*\\(?!\\)(\w)*(?!\\)/g
-const error = async function(req,res){
-    try{
-        let token = req.headers["x-api-key"]
-        let decodedToken = jwt.verify(token, "secret-key", {ignoreExpiration: true})
-        let exp = decodedToken.exp
-        let iatNow = Math.floor(Date.now() / 1000)
-        if(exp<iatNow) return res.status(401).send({status:false,msg:'Token is expired now'})
-        return res.status(200).send({msg:'change the code'})
-        next()
-    }catch(error){
-        return res.status(500).send({status:false, msg:error.message})
-    }
-}
+
 
 
 module.exports.createUser = createUser
 module.exports.loginUser = loginUser
-module.exports.error = error
