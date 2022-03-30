@@ -64,7 +64,7 @@ const getBooks = async function(req,res){
     try{if(Object.keys(req.query).length == 0){
         let data = await bookModel.find({isDeleted:false}).collation({locale: "en" }).sort({title:1}).select({title:1,excerpt:1,userId:1,category:1,releasedAt:1,review:1})
         if(!data) return res.status(404).send({status:false,msg:"no book found"})
-        return res.status(200).send({status:true,msg:"success",data:data})
+        return res.status(200).send({status:true,msg:"Books list",data:data})
     }
 
     let filterCondition = req.query;
@@ -79,7 +79,7 @@ const getBooks = async function(req,res){
     filterCondition.isDeleted = false;
     let data = await bookModel.find(filterCondition).collation({locale: "en" }).sort({title:1}).select({title:1,excerpt:1,userId:1,category:1,releasedAt:1,review:1})
     if(data.length == 0) return res.status(404).send({status:false,msg:"no book found"})
-    return res.status(200).send({status:true,msg:"success",data:data})
+    return res.status(200).send({status:true,msg:"Book List",data:data})
 }catch(error){
     return res.status(500).send({status:false,msg:error.message})
 }
@@ -95,7 +95,7 @@ const getBooksWithId = async function(req,res){
     data = data.toObject() // mongoDB gave us a bison type of Object
     data.reviewsData = review
     //let book = {...data,reviesData:review}
-    return res.status(200).send({status:true,msg:"success",data:data})
+    return res.status(200).send({status:true,msg:"Book List",data:data})
 }catch(error){
     return res.status(500).send({status:false,msg:error.message})
 }
@@ -135,7 +135,7 @@ const updateBook = async function(req,res){
     updatedBook = updatedBook.toObject()
     updatedBook.reviesData = review
     //let book = {...data,reviesData:review}
-    return res.status(201).send({status:true,msg:"success",data:updatedBook})
+    return res.status(201).send({status:true,msg:"Book List",data:updatedBook})
 }catch(error) {
     return res.status(500).send({status:false,msg:error.message})
 }

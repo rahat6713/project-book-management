@@ -33,7 +33,7 @@ const createReview = async function(req,res){
     let bookUpdate = await bookModel.findOneAndUpdate({_id:bookId, isDeleted:false}, {$inc: {review : 1}},{new:true}) 
     bookUpdate = bookUpdate.toObject();
     bookUpdate.reviewsData = review
-    return res.status(201).send({status:true,msg:"success",data:bookUpdate})
+    return res.status(201).send({status:true,msg:"Book List",data:bookUpdate})
 }catch(error){
     return res.status(500).send({status:false,msg:error.message})
 }
@@ -70,7 +70,7 @@ const updateReview = async function(req,res){
     let updated = await reviewModel.findByIdAndUpdate({_id:reviewId,status:false}, {$set:{review:reviewData.review, rating:reviewData.rating,reviewedBy:reviewData.reviewedBy}})
     let allReviews = await reviewModel.find({bookId:bookId,isDeleted:false})
     book.reviewsData = allReviews
-    return res.status(200).send({status:true,msg:"success",data:book})
+    return res.status(200).send({status:true,msg:"Book List",data:book})
 }catch(error){
     return res.status(500).send({status:false,msg:error.message})
 }
@@ -92,7 +92,7 @@ const deleteReview = async function(req,res){
 
     let updated = await reviewModel.findByIdAndUpdate({_id:reviewId,status:false}, {$set:{isDeleted:true}})
     let bookUpdate = await bookModel.findOneAndUpdate({_id:bookId, isDeleted:false}, {$inc: {review : -1}}) 
-    return res.status(200).send()
+    return res.status(200).send({status:false,msg:'success'})
 }catch(error){
     return res.status(500).send({status:false,msg:error.message})
 }
