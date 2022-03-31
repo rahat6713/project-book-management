@@ -40,7 +40,7 @@ const createUser = async function(req,res){
     
     if(Object.keys(userData).includes('address')){
      if(Object.keys(userData.address).includes('pincode')){
-       if(userData.address.pincode.length !=6) return res.status(400).send({status:false,msg:'pincode length should be 6 digits'})
+       if(userData.address.pincode.trim().length !=6) return res.status(400).send({status:false,msg:'pincode length should be 6 digits'})
      }
     } 
 
