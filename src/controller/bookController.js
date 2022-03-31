@@ -136,7 +136,7 @@ const updateBook = async function(req,res){
     updatedBook = updatedBook.toObject()
     updatedBook.reviesData = review
     //let book = {...data,reviesData:review}
-    return res.status(201).send({status:true,msg:"Book List",data:updatedBook})
+    return res.status(200).send({status:true,msg:"Book List",data:updatedBook})
 }catch(error) {
     return res.status(500).send({status:false,msg:error.message})
 }
