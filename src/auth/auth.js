@@ -5,6 +5,7 @@ const ObjectId = require('mongoose').Types.ObjectId
 const authentication = async function(req,res,next){
     try{
         let token = req.headers["x-api-key"]
+        if(!token) return res.status(400).send({status:false,msg:'enter the token in header'})
         let decodedToken = jwt.verify(token, "secret-key", {ignoreExpiration: true})
         let exp = decodedToken.exp
         let iatNow = Math.floor(Date.now() / 1000)
