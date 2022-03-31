@@ -18,6 +18,7 @@ const createBooks = async function(req,res){
     // validation of excerpt
     if(!bookData.excerpt) return res.status(400).send({status:false,msg:"enter the excerpt of the book"})
     if(typeof(bookData.excerpt) != typeof(' ')) return res.status(400).send({status:false,msg:`enter excerpt in the proper format`})
+    if(bookData.excerpt.trim().length == 0) return res.status(400).send({status:false,msg:'excerpt is not in the proper format'})
     // Validation of userId
     if(!bookData.userId) return res.status(400).send({status:false,msg:'enter the userId of the book'})
     if(!ObjectId.isValid(bookData.userId.trim())) return res.status(400).send({status:false,msg:'userId is not valid'})
@@ -46,12 +47,12 @@ const createBooks = async function(req,res){
             return res.status(400).send({status:false,msg:"released Date is not valid"})
         }
     }
-    if(bookData.isDeleted == true){
-        let date = moment().format()
-        bookData.deletedAt = Date.now()
-        let createBook = await bookModel.create(bookData)
-        return res.status(201).send({status:true,message:"book created successfully",data:createBook})
-    }
+    // if(bookData.isDeleted == true){
+    //     let date = moment().format()
+    //     bookData.deletedAt = Date.now()
+    //     let createBook = await bookModel.create(bookData)
+    //     return res.status(201).send({status:true,message:"book created successfully",data:createBook})
+    // }
     let data = await bookModel.create(bookData)
     return res.status(201).send({status:true,msg:'success',data : data})
 }catch(error){
@@ -130,7 +131,7 @@ const updateBook = async function(req,res){
             return res.status(400).send({status:false,msg:"released Date is not valid"})
         }
     }
-    let updatedBook = await bookModel.findOneAndUpdate({_id:bookId,isDeleted:false}, {$set:{title:updateDetails.title.trim(), excerpt:updateDetails.excerpt.trim(),releasedAt:updateDetails.releasedAt.trim(),ISBN:updateDetails.ISBN.trim()}},{new:true})
+    let updatedBook = await bookModel.findOneAndUpdate({_id:bookId,isDeleted:false}, {$set:{title:updateDetails.title, excerpt:updateDetails.excerpt,releasedAt:updateDetails.releasedAt,ISBN:updateDetails.ISBN}},{new:true})
     let review = await reviewModel.find({bookId:bookId,isDeleted:false})
     updatedBook = updatedBook.toObject()
     updatedBook.reviesData = review

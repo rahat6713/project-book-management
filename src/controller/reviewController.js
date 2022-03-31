@@ -10,6 +10,7 @@ const createReview = async function(req,res){
     if(!book) return res.status(400).send({status:false,msg:"book with specific bookId is not present"})
     
     let reviewData = req.body
+    if(Object.keys(reviewData).length == 0) return res.status(400).send({status:false,msg:'enter the review details'})
     if(!reviewData.bookId) return res.status(400).send({status:false,msg:"bookId in body is not present in the body"})
     if(!ObjectId.isValid(reviewData.bookId.trim())) return res.status(400).send({status:false,msg:"bookId in body is invalid"})
     let books = await bookModel.findOne({_id:reviewData.bookId.trim(),isDeleted:false})

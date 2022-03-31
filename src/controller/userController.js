@@ -38,16 +38,11 @@ const createUser = async function(req,res){
     let validPass = userData.password.trim().length >=8 && userData.password.trim().length <=15
     if(!validPass) return res.status(400).send({status:false, msg:"Password length should be between 8 to 15"})
     
-    // if(Object.keys(userData).includes('address')){
-    //     let add = userData.address;
-    //     for(let i=0;i<Object.values(add).length;i++){
-    //         if(typeof(Object.values(add)[i])!=typeof(' ')) 
-    //             return res.status(400).send({status:false,msg:'enter the address in proper format'})
-    //     }
-    // }
-    // if(userData.hasOwnProperty(address)){
-    //     if(Object.keys(userData.address).length == 0) return res.status(400).send({status:false,msg:'address should be in valid format'}) 
-    // }
+    if(Object.keys(userData).includes('address')){
+     if(Object.keys(userData.address).includes('pincode')){
+       if(userData.address.pincode.length !=6) return res.status(400).send({status:false,msg:'pincode length should be 6 digits'})
+     }
+    } 
 
     let data = await userModel.create(userData);
     return res.status(201).send({status : true, msg: "success",  data : data})
